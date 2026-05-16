@@ -154,11 +154,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <p className="font-medium text-sand-700 mb-1">{label}</p>
 
         {payload.map((p: any) => (
-          <p
-            key={p.name}
-            style={{ color: p.color }}
-            className="capitalize"
-          >
+          <p key={p.name} style={{ color: p.color }} className="capitalize">
             {p.name}: {p.value}%
           </p>
         ))}
@@ -180,140 +176,117 @@ export default function DashboardPage() {
 
   if (loading) return <AuthLoadingScreen />;
 
-  const firstName =
-    user?.fullName?.split(" ")[0] || "Client";
+  const firstName = user?.fullName?.split(" ")[0] || "Client";
 
   const toggle = (id: number) => {
     setChecklist((prev) =>
       prev.map((item) =>
-        item.id === id
-          ? { ...item, done: !item.done }
-          : item
-      )
+        item.id === id ? { ...item, done: !item.done } : item,
+      ),
     );
   };
 
-  const completedCount = checklist.filter(
-    (i) => i.done
-  ).length;
+  const completedCount = checklist.filter((i) => i.done).length;
 
-  const completionPct = Math.round(
-    (completedCount / checklist.length) * 100
-  );
+  const completionPct = Math.round((completedCount / checklist.length) * 100);
 
   const fadeIn = (delay = 0) => ({
     initial: { opacity: 0, y: 16 },
     animate: { opacity: 1, y: 0 },
     transition: {
       duration: 0.5,
-      ease: [0.22, 1, 0.36, 1],
+      ease: "easeOut",
       delay,
     },
   });
 
   return (
     <div className="max-w-6xl mx-auto px-4 lg:px-8 py-8 space-y-7">
-
       {/* HERO */}
-     {/* HERO */}
-<motion.div
-  {...fadeIn(0)}
-  className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#7A553D] via-[#654635] to-[#432D21] p-6 lg:p-8 text-white shadow-[0_20px_70px_rgba(91,63,43,0.22)]"
->
-  {/* Glow */}
-  <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
-  <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-[#D7B89E]/10 blur-3xl" />
+      {/* HERO */}
+      <motion.div
+        {...fadeIn(0)}
+        className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#7A553D] via-[#654635] to-[#432D21] p-6 lg:p-8 text-white shadow-[0_20px_70px_rgba(91,63,43,0.22)]"
+      >
+        {/* Glow */}
+        <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
+        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-[#D7B89E]/10 blur-3xl" />
 
-  <div className="relative flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+        <div className="relative flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+          {/* LEFT */}
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 backdrop-blur-xl mb-5">
+              <div className="w-2 h-2 rounded-full bg-[#E7C7A7] animate-pulse" />
 
-    {/* LEFT */}
-    <div className="max-w-2xl">
-      <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 backdrop-blur-xl mb-5">
-        <div className="w-2 h-2 rounded-full bg-[#E7C7A7] animate-pulse" />
+              <span className="text-[10px] uppercase tracking-[0.25em] text-white/70">
+                Wellness Intelligence
+              </span>
+            </div>
 
-        <span className="text-[10px] uppercase tracking-[0.25em] text-white/70">
-          Wellness Intelligence
-        </span>
-      </div>
+            <h1 className="font-serif text-4xl lg:text-6xl leading-[1.02] tracking-tight">
+              Recovery improved <span className="text-[#E7C7A7]">18%</span>
+              <br />
+              this week, {firstName}.
+            </h1>
 
-      <h1 className="font-serif text-4xl lg:text-6xl leading-[1.02] tracking-tight">
-        Recovery improved{" "}
-        <span className="text-[#E7C7A7]">18%</span>
-        <br />
-        this week, {firstName}.
-      </h1>
+            <p className="mt-5 max-w-xl text-sm lg:text-[15px] leading-relaxed text-white/72">
+              Your sleep consistency and stress recovery patterns are trending
+              positively. Your protocol has been updated for deeper overnight
+              restoration.
+            </p>
 
-      <p className="mt-5 max-w-xl text-sm lg:text-[15px] leading-relaxed text-white/72">
-        Your sleep consistency and stress recovery patterns are
-        trending positively. Your protocol has been updated for
-        deeper overnight restoration.
-      </p>
+            {/* MINI STATS */}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl px-4 py-3 min-w-[110px]">
+                <p className="text-[10px] uppercase tracking-wide text-white/45">
+                  Sleep
+                </p>
 
-      {/* MINI STATS */}
-      <div className="mt-6 flex flex-wrap gap-3">
+                <p className="mt-1 font-serif text-2xl">92%</p>
+              </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl px-4 py-3 min-w-[110px]">
-          <p className="text-[10px] uppercase tracking-wide text-white/45">
-            Sleep
-          </p>
+              <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl px-4 py-3 min-w-[110px]">
+                <p className="text-[10px] uppercase tracking-wide text-white/45">
+                  Recovery
+                </p>
 
-          <p className="mt-1 font-serif text-2xl">
-            92%
-          </p>
+                <p className="mt-1 font-serif text-2xl text-[#E7C7A7]">+18%</p>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl px-4 py-3 min-w-[110px]">
+                <p className="text-[10px] uppercase tracking-wide text-white/45">
+                  Stress
+                </p>
+
+                <p className="mt-1 font-serif text-2xl">Moderate</p>
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT SCORE */}
+          <div className="self-start lg:self-end">
+            <div className="rounded-[2rem] border border-white/10 bg-white/10 backdrop-blur-2xl px-6 py-5 min-w-[180px]">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-white/50 mb-3">
+                Recovery Score
+              </p>
+
+              <div className="flex items-end gap-1">
+                <span className="font-serif text-6xl leading-none">87</span>
+
+                <span className="text-white/50 mb-2 text-sm">/100</span>
+              </div>
+
+              <div className="mt-4 h-2 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-full w-[87%] rounded-full bg-gradient-to-r from-[#E7C7A7] to-[#D9B89B]" />
+              </div>
+
+              <p className="mt-3 text-sm text-white/65">
+                Excellent recovery trajectory
+              </p>
+            </div>
+          </div>
         </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl px-4 py-3 min-w-[110px]">
-          <p className="text-[10px] uppercase tracking-wide text-white/45">
-            Recovery
-          </p>
-
-          <p className="mt-1 font-serif text-2xl text-[#E7C7A7]">
-            +18%
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl px-4 py-3 min-w-[110px]">
-          <p className="text-[10px] uppercase tracking-wide text-white/45">
-            Stress
-          </p>
-
-          <p className="mt-1 font-serif text-2xl">
-            Moderate
-          </p>
-        </div>
-
-      </div>
-    </div>
-
-    {/* RIGHT SCORE */}
-    <div className="self-start lg:self-end">
-      <div className="rounded-[2rem] border border-white/10 bg-white/10 backdrop-blur-2xl px-6 py-5 min-w-[180px]">
-
-        <p className="text-[10px] uppercase tracking-[0.22em] text-white/50 mb-3">
-          Recovery Score
-        </p>
-
-        <div className="flex items-end gap-1">
-          <span className="font-serif text-6xl leading-none">
-            87
-          </span>
-
-          <span className="text-white/50 mb-2 text-sm">
-            /100
-          </span>
-        </div>
-
-        <div className="mt-4 h-2 rounded-full bg-white/10 overflow-hidden">
-          <div className="h-full w-[87%] rounded-full bg-gradient-to-r from-[#E7C7A7] to-[#D9B89B]" />
-        </div>
-
-        <p className="mt-3 text-sm text-white/65">
-          Excellent recovery trajectory
-        </p>
-      </div>
-    </div>
-  </div>
-</motion.div>
+      </motion.div>
 
       {/* SCORE CARDS */}
       <motion.div
@@ -328,23 +301,17 @@ export default function DashboardPage() {
             <div
               className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center mb-3`}
             >
-              <card.icon
-                className={`w-[18px] h-[18px] ${card.color}`}
-              />
+              <card.icon className={`w-[18px] h-[18px] ${card.color}`} />
             </div>
 
-            <p className="text-xs text-sand-500 mb-1">
-              {card.label}
-            </p>
+            <p className="text-xs text-sand-500 mb-1">{card.label}</p>
 
             <div className="flex items-baseline gap-1">
               <span className="font-serif text-2xl font-light text-sand-800">
                 {card.value}
               </span>
 
-              <span className="text-xs text-sand-500">
-                {card.unit}
-              </span>
+              <span className="text-xs text-sand-500">{card.unit}</span>
             </div>
 
             <p className="text-xs text-sage-400 font-medium mt-1">
@@ -390,13 +357,9 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex-1">
-                <h3 className="font-medium text-[#3E2D24]">
-                  {item.label}
-                </h3>
+                <h3 className="font-medium text-[#3E2D24]">{item.label}</h3>
 
-                <p className="text-sm text-[#8D7768] mt-1">
-                  {item.desc}
-                </p>
+                <p className="text-sm text-[#8D7768] mt-1">{item.desc}</p>
               </div>
 
               <ChevronRight className="w-5 h-5 text-[#B39A87] group-hover:translate-x-1 transition-transform" />
@@ -407,7 +370,6 @@ export default function DashboardPage() {
 
       {/* CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-
         {/* ENERGY */}
         <motion.div
           {...fadeIn(0.18)}
@@ -419,9 +381,7 @@ export default function DashboardPage() {
                 Energy & Sleep Trend
               </h3>
 
-              <p className="text-xs text-sand-500 mt-0.5">
-                Last 7 days
-              </p>
+              <p className="text-xs text-sand-500 mt-0.5">Last 7 days</p>
             </div>
 
             <Badge className="bg-sage-100 text-sage-500 border-0">
@@ -432,23 +392,9 @@ export default function DashboardPage() {
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={energyData}>
               <defs>
-                <linearGradient
-                  id="energyGrad"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor="#b89d82"
-                    stopOpacity={0.25}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor="#b89d82"
-                    stopOpacity={0}
-                  />
+                <linearGradient id="energyGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#b89d82" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="#b89d82" stopOpacity={0} />
                 </linearGradient>
               </defs>
 
@@ -458,17 +404,9 @@ export default function DashboardPage() {
                 vertical={false}
               />
 
-              <XAxis
-                dataKey="day"
-                axisLine={false}
-                tickLine={false}
-              />
+              <XAxis dataKey="day" axisLine={false} tickLine={false} />
 
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                domain={[50, 100]}
-              />
+              <YAxis axisLine={false} tickLine={false} domain={[50, 100]} />
 
               <Tooltip content={<CustomTooltip />} />
 
@@ -504,10 +442,7 @@ export default function DashboardPage() {
             </span>
           </div>
 
-          <Progress
-            value={completionPct}
-            className="h-1.5 mb-5"
-          />
+          <Progress value={completionPct} className="h-1.5 mb-5" />
 
           <div className="space-y-2">
             {checklist.map((item) => (
@@ -518,9 +453,7 @@ export default function DashboardPage() {
               >
                 <div
                   className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    item.done
-                      ? "bg-sand-700"
-                      : "border-2 border-sand-300"
+                    item.done ? "bg-sand-700" : "border-2 border-sand-300"
                   }`}
                 >
                   {item.done && (
@@ -530,17 +463,13 @@ export default function DashboardPage() {
 
                 <span
                   className={`text-sm flex-1 ${
-                    item.done
-                      ? "line-through text-sand-500"
-                      : "text-sand-700"
+                    item.done ? "line-through text-sand-500" : "text-sand-700"
                   }`}
                 >
                   {item.label}
                 </span>
 
-                <span className="text-xs text-sand-500">
-                  {item.time}
-                </span>
+                <span className="text-xs text-sand-500">{item.time}</span>
               </button>
             ))}
           </div>

@@ -61,7 +61,7 @@ export default function TestimonialsSection() {
               key={t.name}
               initial={{ opacity: 0, y: 30 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.6, delay: i * 0.12, ease:  "easeOut"}}
               className="group bg-white/80 backdrop-blur-sm border border-[#E8DED5] rounded-[2rem] p-8 shadow-[0_4px_24px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 flex flex-col"
             >
               <Quote className="w-7 h-7 text-[#D8C2B2] mb-6" />

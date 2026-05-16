@@ -20,7 +20,7 @@ export default function CTASection() {
           ref={ref}
           initial={{ opacity: 0, y: 30 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, ease:  "easeOut" }}
           className="relative rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-[#6F4E37] via-[#5E4232] to-[#3F2A20] px-5 sm:px-8 lg:px-16 py-10 sm:py-10 lg:py-24 text-center shadow-[0_20px_80px_rgba(0,0,0,0.18)]"
         >
           {/* Background texture */}

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay },
+  transition: { duration: 0.7, ease:  "easeOut", delay },
 });
 
 const stats = [
@@ -97,7 +97,7 @@ export default function HeroSection() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.3 }}
+          transition={{ duration: 0.9, ease: "easeOut", delay: 0.3 }}
           className="relative"
         >
           <div className="relative rounded-[2rem] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.12)]">

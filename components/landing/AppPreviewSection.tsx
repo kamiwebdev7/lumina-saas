@@ -136,7 +136,7 @@ export default function AppPreviewSection() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95, x: 30 }}
             animate={inView ? { opacity: 1, scale: 1, x: 0 } : {}}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+            transition={{ duration: 0.8, ease:  "easeOut", delay: 0.2 }}
           >
             <div className="bg-[#2F211A]/90 backdrop-blur-xl rounded-[2rem] p-7 border border-white/10 shadow-[0_20px_80px_rgba(0,0,0,0.25)]">
               {/* Header */}

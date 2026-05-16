@@ -191,14 +191,21 @@ export default function DashboardPage() {
   const completionPct = Math.round((completedCount / checklist.length) * 100);
 
   const fadeIn = (delay = 0) => ({
-    initial: { opacity: 0, y: 16 },
-    animate: { opacity: 1, y: 0 },
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-      delay,
-    },
-  });
+  initial: {
+    opacity: 0,
+    y: 20,
+  },
+
+  animate: {
+    opacity: 1,
+    y: 0,
+  },
+
+  transition: {
+    duration: 0.6,
+    delay,
+  },
+});
 
   return (
     <div className="max-w-6xl mx-auto px-4 lg:px-8 py-8 space-y-7">

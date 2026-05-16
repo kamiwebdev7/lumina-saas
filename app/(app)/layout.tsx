@@ -1,6 +1,9 @@
-// app/dashboard/layout.tsx
-// Server Component — validates session, then wraps children in AuthProvider.
-// AuthProvider is required for useAuth() to work in all child Client Components.
+// app/(app)/layout.tsx
+// This layout wraps ALL protected routes:
+// /dashboard, /progress, /protocols, /schedule, /settings
+//
+// AuthProvider here means every page in the (app) group
+// can safely call useAuth() without crashing the build.
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -9,7 +12,7 @@ import AppSidebar from "@/components/layout/AppSidebar";
 import MobileTopbar from "@/components/layout/MobileTopbar";
 import MobileNav from "@/components/layout/MobileNav";
 
-export default async function DashboardLayout({
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -26,18 +29,15 @@ export default async function DashboardLayout({
   }
 
   return (
-    // AuthProvider gives all Client Components access to user via useAuth()
-    // This is what powers the real name/initials/avatar everywhere
     <AuthProvider>
       <div className="flex h-screen overflow-hidden bg-background">
 
-        {/* Desktop sidebar — hidden on mobile */}
+        {/* Desktop sidebar */}
         <AppSidebar />
 
-        {/* Main content area */}
         <div className="flex flex-1 flex-col overflow-hidden">
 
-          {/* Single topbar — your existing MobileTopbar, now auth-connected */}
+          {/* Topbar — reads user from AuthContext */}
           <MobileTopbar />
 
           {/* Page content */}

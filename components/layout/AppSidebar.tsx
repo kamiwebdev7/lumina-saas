@@ -91,7 +91,7 @@ export default function AppSidebar() {
       }}
       transition={{
         duration: 0.24,
-        ease:  "easeOut",
+        ease: [0.22, 1, 0.36, 1] as const
       }}
       className="hidden lg:flex flex-col h-screen sticky top-0 overflow-hidden flex-shrink-0 border-r border-[#E9DED2] bg-[#FBF8F5]"
     >

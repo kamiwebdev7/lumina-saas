@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
+// Fix for helper function
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
+  initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.7, ease:  "easeOut", delay },
+  transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const, delay },
 });
 
 const stats = [
@@ -97,7 +97,7 @@ export default function HeroSection() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.9, ease: "easeOut", delay: 0.3 }}
+          transition={{ duration: 0.9, delay: 0.3 }}
           className="relative"
         >
           <div className="relative rounded-[2rem] overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.12)]">

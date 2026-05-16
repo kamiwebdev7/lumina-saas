@@ -18,7 +18,7 @@ export default function LogoutButton() {
     // router.refresh() is REQUIRED — it re-runs the server layout,
     // which will now see no user and redirect to /login.
     router.refresh();
-    router.push("/login");
+    router.push("/");
   }
 
   return (

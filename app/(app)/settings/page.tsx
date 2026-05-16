@@ -52,10 +52,7 @@ export default function SettingsPage() {
     window.location.href = "/";
   }
 
-  const fullName =
-    user?.user_metadata?.full_name ||
-    user?.email?.split("@")[0] ||
-    "Wellness Client";
+  const fullName = user?.fullName ?? user?.email?.split("@")[0] ?? "Wellness Client";
 
   const initials =
     fullName

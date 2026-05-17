@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Lumina — Personalized Longevity & Wellness Coaching",
+  title: "Capacity Lab OS — Personalized Longevity & Wellness Coaching",
 
   description:
     "Precision wellness coaching for metabolism, energy, sleep, and stress regulation. Tailored longevity protocols for high-performing women.",

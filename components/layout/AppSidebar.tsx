@@ -67,7 +67,7 @@ export default function AppSidebar() {
     user?.fullName || "Wellness Client";
 
   const email =
-    user?.email || "client@lumina.com";
+    user?.email || "client@Capacity Lab OS.com";
 
   const initials =
     fullName
@@ -114,7 +114,7 @@ export default function AppSidebar() {
             </div>
 
             <span className="font-serif text-[1.45rem] text-[#4B3326]">
-              Lumina
+              Capacity Lab OS
             </span>
           </Link>
         ) : (

@@ -33,7 +33,7 @@ export default function Navbar() {
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
          scrolled
   ? "bg-[#F8F2EC]/85 backdrop-blur-2xl border-b border-[#E7DCCF] shadow-[0_10px_40px_rgba(111,78,55,0.08)]"
@@ -49,7 +49,7 @@ export default function Navbar() {
               </div>
 
               <span className="font-serif text-[22px] tracking-wide text-[#5E4232]">
-                Lumina
+                Capacity Lab OS
               </span>
             </Link>
 
@@ -124,7 +124,7 @@ export default function Navbar() {
                   </div>
 
                   <span className="font-serif text-lg text-[#5E4232]">
-                    Lumina
+                    Capacity Lab OS
                   </span>
                 </div>
 

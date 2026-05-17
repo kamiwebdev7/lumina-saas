@@ -63,7 +63,7 @@ export default function LoginPage() {
             </h1>
 
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-[#8C7463]">
-              Continue your personalized wellness journey with Lumina.
+              Continue your personalized wellness journey with Capacity Lab OS.
             </p>
           </div>
 

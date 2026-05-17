@@ -30,7 +30,7 @@ export default function MobileTopbar() {
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#7A553D] to-[#4B3326] shadow-sm">
             <span className="font-serif text-sm text-white">L</span>
           </div>
-          <span className="font-serif text-base text-[#4B3326]">Lumina</span>
+          <span className="font-serif text-base text-[#4B3326]">Capacity Lab OS</span>
         </Link>
 
         {/* Greeting — visible on desktop only */}

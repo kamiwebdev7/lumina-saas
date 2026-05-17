@@ -34,7 +34,7 @@ export default function Footer() {
                 <Leaf className="w-4 h-4 text-sand-50" />
               </div>
               <span className="font-serif text-xl font-medium text-sand-100 tracking-wide">
-                Lumina
+                Capacity Lab OS
               </span>
             </Link>
             <p className="text-sm text-sand-400 leading-relaxed max-w-xs mb-6">
@@ -78,7 +78,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-sand-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-sand-500">
-            &copy; {new Date().getFullYear()} Lumina Wellness. All rights reserved.
+            &copy; {new Date().getFullYear()} Capacity Lab OS Wellness. All rights reserved.
           </p>
           <div className="flex items-center gap-5">
             <Link href="#" className="text-xs text-sand-500 hover:text-sand-300 transition-colors">Privacy Policy</Link>

@@ -11,9 +11,9 @@ import {
 
 const faqs = [
   {
-    question: "How is Lumina different from other wellness programs?",
+    question: "How is Capacity Lab OS different from other wellness programs?",
     answer:
-      "Lumina is built on precision health science, not generic advice. Every protocol is tailored to your biomarkers, lifestyle, and goals. You work 1:1 with a specialist coach, and your plan evolves as your health does.",
+      "Capacity Lab OS is built on precision health science, not generic advice. Every protocol is tailored to your biomarkers, lifestyle, and goals. You work 1:1 with a specialist coach, and your plan evolves as your health does.",
   },
   {
     question: "What results can I expect, and how quickly?",

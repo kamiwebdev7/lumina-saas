@@ -41,7 +41,7 @@ export default function CTASection() {
             </h2>
             <p className="text-base text-[#D7C2B2] max-w-xl mx-auto leading-relaxed mb-10">
               Join over 340 women who have transformed their sleep, metabolism,
-              and energy through Lumina&apos;s precision wellness coaching.
+              and energy through Capacity Lab OS&apos;s precision wellness coaching.
               Limited spaces available.
             </p>
 

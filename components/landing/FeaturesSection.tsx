@@ -106,7 +106,7 @@ export default function FeaturesSection() {
             transition={{ duration: 0.5 }}
             className="text-xs uppercase tracking-widest text-[#8C7566] font-medium mb-4"
           >
-            The Lumina Method
+            The Capacity Lab OS Method
           </motion.p>
           <motion.h2
             initial={{ opacity: 0, y: 16 }}

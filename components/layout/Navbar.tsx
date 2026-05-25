@@ -7,9 +7,9 @@ import { Menu, X, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
-  { label: "Approach", href: "#approach" },
-  { label: "Programs", href: "#programs" },
-  { label: "Results", href: "#results" },
+  { label: "Framework", href: "#approach" },
+  { label: "Experience", href: "#programs" },
+  { label: "Journey", href: "#results" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -18,12 +18,18 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
 
-    window.addEventListener("scroll", onScroll, {
-      passive: true,
-    });
-
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -33,11 +39,11 @@ export default function Navbar() {
       <motion.header
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
-        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ${
-         scrolled
-  ? "bg-[#F8F2EC]/85 backdrop-blur-2xl border-b border-[#E7DCCF] shadow-[0_10px_40px_rgba(111,78,55,0.08)]"
-  : "bg-transparent"
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+          scrolled
+            ? "backdrop-blur-xl bg-[#3f2a20]/90 border-b border-white/10 shadow-lg text-white"
+            : "backdrop-blur-md bg-[#FCF8F4]/70 border-b border-transparent text-[#3E2D24]"
         }`}
       >
         <div className="max-w-7xl mx-auto px-5 lg:px-8">
@@ -47,8 +53,11 @@ export default function Navbar() {
               <div className="w-7 h-7 rounded-full bg-[#6F4E37] flex items-center justify-center transition-all duration-300 group-hover:scale-105">
                 <Leaf className="w-3.5 h-3.5 text-white" />
               </div>
-
-              <span className="font-serif text-[22px] tracking-wide text-[#5E4232]">
+              <span
+                className={`font-serif text-[20px] lg:text-[22px] tracking-wide transition-colors duration-300 ${
+                  scrolled ? "text-[#FCF8F4]" : "text-[#5E4232]"
+                }`}
+              >
                 Capacity Lab OS
               </span>
             </Link>
@@ -59,7 +68,11 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-sm font-medium text-[#6B5B4D] hover:text-[#3E2D24] transition-all duration-300"
+                  className={`text-sm font-medium transition-colors duration-300 ${
+                    scrolled
+                      ? "text-white/80 hover:text-white"
+                      : "text-[#6B5B4D] hover:text-[#3E2D24]"
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -71,15 +84,19 @@ export default function Navbar() {
               <Link href="/dashboard">
                 <Button
                   variant="ghost"
-                  className="rounded-full px-5 text-[#6B5B4D] hover:bg-[#F5EFEA]"
+                  className={`rounded-full px-5 transition-colors duration-300 ${
+                    scrolled
+                      ? "text-white hover:bg-white/10 hover:text-white"
+                      : "text-[#6B5B4D] hover:bg-[#F5EFEA] hover:text-[#3E2D24]"
+                  }`}
                 >
-                  Client Portal
+                  Take Capacity State Check
                 </Button>
               </Link>
 
               <Link href="#contact">
-                <Button className="rounded-full px-6 bg-[#6F4E37] hover:bg-[#5E4232] text-white shadow-md hover:shadow-xl transition-all duration-300">
-                  Book Consultation
+                <Button className="rounded-full px-6 bg-[#6F4E37] hover:bg-[#5E4232] text-white shadow-md transition-all duration-300">
+                  Apply for Founding Round
                 </Button>
               </Link>
             </div>
@@ -87,7 +104,7 @@ export default function Navbar() {
             {/* MOBILE BUTTON */}
             <button
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-[#7A553D] to-[#5E4232] text-white shadow-[0_6px_18px_rgba(111,78,55,0.18)] transition-all duration-300"
+              className="lg:hidden flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-[#7A553D] to-[#5E4232] text-white shadow-md active:scale-95 transition-transform"
             >
               <Menu className="w-4 h-4" />
             </button>
@@ -105,7 +122,7 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 bg-black/10 backdrop-blur-sm z-40 lg:hidden"
+              className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
             />
 
             {/* PANEL */}
@@ -114,7 +131,7 @@ export default function Navbar() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -12, scale: 0.98 }}
               transition={{ duration: 0.25 }}
-              className="fixed top-3 left-3 right-3 z-50 rounded-[2rem] border border-[#E7DCCF] bg-[#FCF8F4]/95 backdrop-blur-2xl shadow-[0_30px_80px_rgba(62,45,36,0.18)] overflow-hidden lg:hidden"
+              className="fixed top-3 left-3 right-3 z-50 rounded-[2rem] border border-[#E7DCCF] bg-[#FCF8F4]/95 backdrop-blur-2xl shadow-xl overflow-hidden lg:hidden"
             >
               {/* TOP BAR */}
               <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-[#F3ECE5]">
@@ -122,7 +139,6 @@ export default function Navbar() {
                   <div className="w-7 h-7 rounded-full bg-[#6F4E37] flex items-center justify-center">
                     <Leaf className="w-3.5 h-3.5 text-white" />
                   </div>
-
                   <span className="font-serif text-lg text-[#5E4232]">
                     Capacity Lab OS
                   </span>
@@ -130,7 +146,7 @@ export default function Navbar() {
 
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-[#7A553D] to-[#5E4232] text-white shadow-[0_8px_24px_rgba(111,78,55,0.22)] transition-all duration-300 hover:scale-105 active:scale-95"
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-[#7A553D] to-[#5E4232] text-white shadow-md transition-transform active:scale-95"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -151,21 +167,18 @@ export default function Navbar() {
 
                 {/* CTA */}
                 <div className="flex flex-col gap-3 pt-5">
-                  <Link
-                    href="/login"
-                    onClick={() => setMobileOpen(false)}
-                  >
+                  <Link href="/dashboard" onClick={() => setMobileOpen(false)}>
                     <Button
                       variant="outline"
                       className="w-full h-11 rounded-full border border-[#E7DCCF] bg-[#FAF6F2] text-[#6B5B4D] hover:bg-[#F3ECE5] shadow-sm"
                     >
-                      Client Portal
+                      Take Capacity State Check
                     </Button>
                   </Link>
 
                   <Link href="#contact" onClick={() => setMobileOpen(false)}>
-                    <Button className="w-full h-11 rounded-full bg-gradient-to-r from-[#7A553D] to-[#5E4232] hover:opacity-95 text-white shadow-[0_10px_24px_rgba(111,78,55,0.28)]">
-                      Book Consultation
+                    <Button className="w-full h-11 rounded-full bg-gradient-to-r from-[#7A553D] to-[#5E4232] hover:opacity-95 text-white shadow-md">
+                      Apply for Founding Round
                     </Button>
                   </Link>
                 </div>

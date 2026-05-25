@@ -1,118 +1,384 @@
 "use client";
 
-// context/AuthContext.tsx
-// Central auth state for the entire app.
-// Wrap your root layout (or dashboard layout) with <AuthProvider>.
-// Any component can call useAuth() to get user data — no prop drilling.
-
 import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
   useCallback,
   type ReactNode,
 } from "react";
-import type { User, Session } from "@supabase/supabase-js";
+
+import type {
+  User,
+  Session,
+} from "@supabase/supabase-js";
+
+import { useRouter } from "next/navigation";
+
 import { createClient } from "@/lib/supabase/client";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
 
 interface AuthUser {
   id: string;
   email: string;
-  fullName: string;       // user_metadata.full_name
-  initials: string;       // derived from fullName
-  avatarUrl: string | null; // user_metadata.avatar_url (OAuth)
+  fullName: string;
+  initials: string;
+  avatarUrl: string | null;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
+
   session: Session | null;
+
   loading: boolean;
+
+  initialized: boolean;
+
   signOut: () => Promise<void>;
+
+  refreshUser: () => Promise<void>;
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+/* -------------------------------------------------------------------------- */
+/*                                  HELPERS                                   */
+/* -------------------------------------------------------------------------- */
 
-function deriveInitials(fullName: string): string {
+function deriveInitials(
+  fullName: string,
+): string {
   return fullName
     .trim()
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
+    .map(
+      (part) =>
+        part[0]?.toUpperCase(),
+    )
     .join("");
 }
 
-function buildAuthUser(user: User): AuthUser {
-  const fullName: string =
-    user.user_metadata?.full_name ||
+function buildAuthUser(
+  user: User,
+): AuthUser {
+  const fullName =
+    user.user_metadata
+      ?.full_name ||
     user.user_metadata?.name ||
     user.email?.split("@")[0] ||
     "User";
 
   return {
     id: user.id,
+
     email: user.email ?? "",
+
     fullName,
-    initials: deriveInitials(fullName),
-    avatarUrl: user.user_metadata?.avatar_url ?? null,
+
+    initials:
+      deriveInitials(fullName),
+
+    avatarUrl:
+      user.user_metadata
+        ?.avatar_url ?? null,
   };
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
+/* -------------------------------------------------------------------------- */
+/*                                  CONTEXT                                   */
+/* -------------------------------------------------------------------------- */
 
-const AuthContext = createContext<AuthContextValue>({
-  user: null,
-  session: null,
-  loading: true,
-  signOut: async () => {},
-});
+const AuthContext =
+  createContext<AuthContextValue>({
+    user: null,
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
+    session: null,
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const supabase = createClient();
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+    loading: true,
 
-  const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    window.location.href = "/";
-  }, [supabase]);
+    initialized: false,
+
+    signOut: async () => {},
+
+    refreshUser:
+      async () => {},
+  });
+
+/* -------------------------------------------------------------------------- */
+/*                                 PROVIDER                                   */
+/* -------------------------------------------------------------------------- */
+
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const supabase = useMemo(
+    () => createClient(),
+    [],
+  );
+
+  const router = useRouter();
+
+  const [user, setUser] =
+    useState<AuthUser | null>(
+      null,
+    );
+
+  const [session, setSession] =
+    useState<Session | null>(
+      null,
+    );
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [
+    initialized,
+    setInitialized,
+  ] = useState(false);
+
+  /* ---------------------------------------------------------------------- */
+  /*                              LOAD CURRENT USER                         */
+  /* ---------------------------------------------------------------------- */
+
+  const refreshUser =
+    useCallback(async () => {
+      try {
+        const {
+          data: { user },
+          error,
+        } =
+          await supabase.auth.getUser();
+
+        if (error) {
+          console.error(
+            "Failed to fetch user:",
+            error.message,
+          );
+
+          return;
+        }
+
+        if (!user) {
+          setUser(null);
+
+          setSession(null);
+
+          return;
+        }
+
+        const {
+          data: { session },
+        } =
+          await supabase.auth.getSession();
+
+        setSession(session);
+
+        setUser(
+          buildAuthUser(user),
+        );
+      } catch (error) {
+        console.error(
+          "User refresh failed:",
+          error,
+        );
+      }
+    }, [supabase]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                                 SIGN OUT                               */
+  /* ---------------------------------------------------------------------- */
+
+  const signOut =
+    useCallback(async () => {
+      try {
+        setLoading(true);
+
+        await supabase.auth.signOut();
+
+        setUser(null);
+
+        setSession(null);
+
+        router.push("/login");
+
+        router.refresh();
+      } catch (error) {
+        console.error(
+          "Sign out failed:",
+          error,
+        );
+      } finally {
+        setLoading(false);
+      }
+    }, [router, supabase]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                           INITIAL AUTH LOAD                            */
+  /* ---------------------------------------------------------------------- */
 
   useEffect(() => {
-    // 1. Load initial session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ? buildAuthUser(session.user) : null);
-      setLoading(false);
-    });
+    let mounted = true;
 
-    // 2. Subscribe to auth changes (login, logout, token refresh)
+    async function initializeAuth() {
+      try {
+        const {
+          data: { user },
+          error,
+        } =
+          await supabase.auth.getUser();
+
+        if (!mounted) return;
+
+        if (error) {
+          console.error(
+            "Initial auth error:",
+            error.message,
+          );
+        }
+
+        if (user) {
+          const {
+            data: { session },
+          } =
+            await supabase.auth.getSession();
+
+          setSession(session);
+
+          setUser(
+            buildAuthUser(user),
+          );
+        } else {
+          setUser(null);
+
+          setSession(null);
+        }
+      } catch (error) {
+        console.error(
+          "Auth initialization failed:",
+          error,
+        );
+      } finally {
+        if (mounted) {
+          setLoading(false);
+
+          setInitialized(true);
+        }
+      }
+    }
+
+    initializeAuth();
+
+    /* ------------------------------------------------------------------ */
+    /*                          AUTH STATE CHANGES                        */
+    /* ------------------------------------------------------------------ */
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ? buildAuthUser(session.user) : null);
-      setLoading(false);
-    });
+    } =
+      supabase.auth.onAuthStateChange(
+        async (
+          event,
+          session,
+        ) => {
+          console.log(
+            "Auth event:",
+            event,
+          );
 
-    return () => subscription.unsubscribe();
-  }, [supabase]);
+          if (
+            event ===
+            "SIGNED_OUT"
+          ) {
+            setUser(null);
+
+            setSession(null);
+
+            setLoading(false);
+
+            return;
+          }
+
+          if (
+            session?.user
+          ) {
+            setSession(session);
+
+            setUser(
+              buildAuthUser(
+                session.user,
+              ),
+            );
+          } else {
+            setUser(null);
+
+            setSession(null);
+          }
+
+          setLoading(false);
+
+          router.refresh();
+        },
+      );
+
+    return () => {
+      mounted = false;
+
+      subscription.unsubscribe();
+    };
+  }, [router, supabase]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                              CONTEXT VALUE                             */
+  /* ---------------------------------------------------------------------- */
+
+  const value =
+    useMemo<AuthContextValue>(
+      () => ({
+        user,
+
+        session,
+
+        loading,
+
+        initialized,
+
+        signOut,
+
+        refreshUser,
+      }),
+      [
+        user,
+        session,
+        loading,
+        initialized,
+        signOut,
+        refreshUser,
+      ],
+    );
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider
+      value={value}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useAuth(): AuthContextValue {
-  return useContext(AuthContext);
+/* -------------------------------------------------------------------------- */
+/*                                    HOOK                                    */
+/* -------------------------------------------------------------------------- */
+
+export function useAuth() {
+  return useContext(
+    AuthContext,
+  );
 }

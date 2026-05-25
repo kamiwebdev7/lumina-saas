@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import { motion } from "framer-motion";
-import Link from "next/link";
 
 import {
   Moon,
@@ -10,478 +14,820 @@ import {
   Droplets,
   Activity,
   Calendar,
-  CheckCircle2,
-  TrendingUp,
-  Flame,
+  ArrowUpRight,
+  Sparkles,
   Heart,
-  Clock,
-  ClipboardList,
-  ChevronRight,
 } from "lucide-react";
 
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from "recharts";
-
 import { useAuth } from "@/context/AuthContext";
+
 import { AuthLoadingScreen } from "@/components/ui/AuthLoadingScreen";
 
 import { Progress } from "@/components/ui/progress";
+
 import { Badge } from "@/components/ui/badge";
 
-/* -------------------------------------------------------------------------- */
-/*                                   DATA                                     */
-/* -------------------------------------------------------------------------- */
-
-const energyData = [
-  { day: "Mon", energy: 65, sleep: 72 },
-  { day: "Tue", energy: 72, sleep: 78 },
-  { day: "Wed", energy: 68, sleep: 75 },
-  { day: "Thu", energy: 80, sleep: 85 },
-  { day: "Fri", energy: 85, sleep: 88 },
-  { day: "Sat", energy: 78, sleep: 82 },
-  { day: "Sun", energy: 87, sleep: 91 },
-];
-
-const weeklyProgress = [
-  { day: "M", score: 72 },
-  { day: "T", score: 75 },
-  { day: "W", score: 68 },
-  { day: "T", score: 82 },
-  { day: "F", score: 88 },
-  { day: "S", score: 79 },
-  { day: "S", score: 87 },
-];
-
-const initialChecklist = [
-  {
-    id: 1,
-    label: "Morning hydration (500ml)",
-    done: true,
-    time: "7:00 AM",
-  },
-  {
-    id: 2,
-    label: "Protein-rich breakfast",
-    done: true,
-    time: "8:00 AM",
-  },
-  {
-    id: 3,
-    label: "Breathwork (5 minutes)",
-    done: true,
-    time: "8:30 AM",
-  },
-  {
-    id: 4,
-    label: "Morning walk (20 min)",
-    done: false,
-    time: "9:00 AM",
-  },
-  {
-    id: 5,
-    label: "Magnesium supplement",
-    done: false,
-    time: "12:00 PM",
-  },
-  {
-    id: 6,
-    label: "Evening wind-down",
-    done: false,
-    time: "9:00 PM",
-  },
-];
-
-const scoreCards = [
-  {
-    icon: Moon,
-    label: "Sleep Score",
-    value: "92",
-    unit: "%",
-    change: "+4%",
-    color: "text-[#7c6fa0]",
-    bg: "bg-[#f0edf8]",
-    borderColor: "border-[#e8e2f5]",
-  },
-  {
-    icon: Zap,
-    label: "Energy Level",
-    value: "87",
-    unit: "%",
-    change: "+12%",
-    color: "text-sand-600",
-    bg: "bg-sand-100",
-    borderColor: "border-sand-200",
-  },
-  {
-    icon: Droplets,
-    label: "Hydration",
-    value: "2.1",
-    unit: "L",
-    change: "+0.4L",
-    color: "text-[#5a9bbf]",
-    bg: "bg-[#ebf4fb]",
-    borderColor: "border-[#d8ecf7]",
-  },
-  {
-    icon: Activity,
-    label: "HRV",
-    value: "68",
-    unit: "ms",
-    change: "+8ms",
-    color: "text-sage-400",
-    bg: "bg-sage-100",
-    borderColor: "border-sage-200",
-  },
-];
+import { createClient } from "@/lib/supabase/client";
 
 /* -------------------------------------------------------------------------- */
-/*                              CUSTOM TOOLTIP                                */
+/*                               SUPABASE                                     */
 /* -------------------------------------------------------------------------- */
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload?.length) {
-    return (
-      <div className="bg-card border border-sand-200 rounded-xl px-3 py-2.5 shadow-card text-xs">
-        <p className="font-medium text-sand-700 mb-1">{label}</p>
+const supabase = createClient();
 
-        {payload.map((p: any) => (
-          <p key={p.name} style={{ color: p.color }} className="capitalize">
-            {p.name}: {p.value}%
-          </p>
-        ))}
-      </div>
-    );
-  }
+/* -------------------------------------------------------------------------- */
+/*                                   TYPES                                    */
+/* -------------------------------------------------------------------------- */
 
-  return null;
+type Profile = {
+  id: string;
+
+  full_name: string;
+
+  goal: string;
+
+  energy_issue: string;
+
+  sleep_quality: string;
+
+  stress_level: string;
+
+  lifestyle_rhythm: string;
+
+  recovery_priority: string;
+};
+
+type WellnessCard = {
+  icon: any;
+
+  label: string;
+
+  value: string;
+
+  detail: string;
+
+  color: string;
+
+  bg: string;
+
+  border: string;
+};
+
+type Protocol = {
+  title: string;
+
+  description: string;
+
+  progress: number;
+
+  duration: string;
 };
 
 /* -------------------------------------------------------------------------- */
-/*                               DASHBOARD PAGE                               */
+/*                               MAIN COMPONENT                               */
 /* -------------------------------------------------------------------------- */
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, loading } =
+    useAuth();
 
-  const [checklist, setChecklist] = useState(initialChecklist);
-
-  if (loading) return <AuthLoadingScreen />;
-
-  const firstName = user?.fullName?.split(" ")[0] || "Client";
-
-  const toggle = (id: number) => {
-    setChecklist((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, done: !item.done } : item,
-      ),
+  const [profile, setProfile] =
+    useState<Profile | null>(
+      null,
     );
-  };
 
-  const completedCount = checklist.filter((i) => i.done).length;
+  const [
+    dashboardLoading,
+    setDashboardLoading,
+  ] = useState(true);
 
-  const completionPct = Math.round((completedCount / checklist.length) * 100);
+  /* ---------------------------------------------------------------------- */
+  /*                             LOAD PROFILE                               */
+  /* ---------------------------------------------------------------------- */
 
-  const fadeIn = (delay = 0) => ({
-  initial: {
-    opacity: 0,
-    y: 20,
-  },
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user?.id) return;
 
-  animate: {
-    opacity: 1,
-    y: 0,
-  },
+      try {
+        const {
+          data,
+          error,
+        } =
+          await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .single();
 
-  transition: {
-    duration: 0.6,
-    delay,
-  },
-});
+        if (error) {
+          console.error(
+            "Profile load error:",
+            error,
+          );
+
+          return;
+        }
+
+        setProfile(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setDashboardLoading(
+          false,
+        );
+      }
+    }
+
+    loadProfile();
+  }, [user?.id]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                             USER NAME                                  */
+  /* ---------------------------------------------------------------------- */
+
+  const firstName =
+    useMemo(() => {
+      if (
+        profile?.full_name
+      ) {
+        return profile.full_name.split(
+          " ",
+        )[0];
+      }
+
+      if (
+        user?.fullName
+      ) {
+        return user.fullName.split(
+          " ",
+        )[0];
+      }
+
+      return "Guest";
+    }, [
+      profile?.full_name,
+      user?.fullName,
+    ]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                         HERO DESCRIPTION                               */
+  /* ---------------------------------------------------------------------- */
+
+  const heroDescription =
+    useMemo(() => {
+      if (!profile) {
+        return "Your personalized wellness journey is beginning.";
+      }
+
+      if (
+        profile.stress_level ===
+          "Frequently overwhelmed" ||
+        profile.stress_level ===
+          "Constant nervous system overload"
+      ) {
+        return "Your current focus is nervous system regulation, restorative consistency, and reducing overstimulation.";
+      }
+
+      if (
+        profile.goal ===
+        "Energy"
+      ) {
+        return "Your wellness rhythm is currently focused on improving sustainable energy and reducing instability.";
+      }
+
+      if (
+        profile.goal ===
+        "Sleep"
+      ) {
+        return "Your recovery journey is centered around improving sleep rhythm and overnight restoration.";
+      }
+
+      if (
+        profile.goal ===
+        "Stress"
+      ) {
+        return "Gentle nervous system regulation and restorative consistency are currently your highest priorities.";
+      }
+
+      return "Your wellness rhythm is gradually becoming more restorative and sustainable.";
+    }, [profile]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                           CURRENT FOCUS                                */
+  /* ---------------------------------------------------------------------- */
+
+  const currentFocus =
+    useMemo(() => {
+      if (!profile)
+        return [];
+
+      const focus: string[] =
+        [];
+
+      if (
+        profile.goal ===
+        "Stress"
+      ) {
+        focus.push(
+          "Nervous system regulation",
+        );
+      }
+
+      if (
+        profile.goal ===
+        "Sleep"
+      ) {
+        focus.push(
+          "Sleep consistency",
+        );
+      }
+
+      if (
+        profile.goal ===
+        "Energy"
+      ) {
+        focus.push(
+          "Energy stabilization",
+        );
+      }
+
+      if (
+        profile.recovery_priority
+      ) {
+        focus.push(
+          profile.recovery_priority,
+        );
+      }
+
+      focus.push(
+        "Restorative movement",
+      );
+
+      return focus;
+    }, [profile]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                           WELLNESS CARDS                               */
+  /* ---------------------------------------------------------------------- */
+
+  const wellnessCards =
+    useMemo<
+      WellnessCard[]
+    >(() => {
+      return [
+        {
+          icon: Moon,
+
+          label:
+            "Sleep Rhythm",
+
+          value:
+            profile?.sleep_quality ||
+            "Moderate",
+
+          detail:
+            "Overnight recovery quality",
+
+          color:
+            "text-[#7C6FA0]",
+
+          bg: "bg-[#F3EFF9]",
+
+          border:
+            "border-[#E9E1F4]",
+        },
+
+        {
+          icon: Zap,
+
+          label:
+            "Energy Stability",
+
+          value:
+            profile?.energy_issue?.includes(
+              "drained",
+            )
+              ? "Low"
+              : "Improving",
+
+          detail:
+            "Daily energy regulation",
+
+          color:
+            "text-[#9A7B5F]",
+
+          bg: "bg-[#F8F2EB]",
+
+          border:
+            "border-[#E9DED2]",
+        },
+
+        {
+          icon:
+            Activity,
+
+          label:
+            "Stress Load",
+
+          value:
+            profile?.stress_level ||
+            "Moderate",
+
+          detail:
+            "Nervous system rhythm",
+
+          color:
+            "text-[#7C9B83]",
+
+          bg: "bg-[#EEF5EF]",
+
+          border:
+            "border-[#DFECE1]",
+        },
+
+        {
+          icon:
+            Droplets,
+
+          label:
+            "Recovery Focus",
+
+          value:
+            profile?.recovery_priority ||
+            "Consistency",
+
+          detail:
+            "Primary restoration goal",
+
+          color:
+            "text-[#5D98B8]",
+
+          bg: "bg-[#EEF6FB]",
+
+          border:
+            "border-[#DDECF6]",
+        },
+      ];
+    }, [profile]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                           ACTIVE PROTOCOLS                             */
+  /* ---------------------------------------------------------------------- */
+
+  const activeProtocols =
+    useMemo<
+      Protocol[]
+    >(() => {
+      if (!profile)
+        return [];
+
+      if (
+        profile.goal ===
+        "Stress"
+      ) {
+        return [
+          {
+            title:
+              "Nervous System Reset",
+
+            description:
+              "Gentle restorative practices focused on reducing overstimulation and improving recovery rhythm.",
+
+            progress: 68,
+
+            duration:
+              "14 day rhythm",
+          },
+
+          {
+            title:
+              "Evening Recovery Ritual",
+
+            description:
+              "Structured evening wind-down practices supporting nervous system restoration.",
+
+            progress: 74,
+
+            duration:
+              "Ongoing",
+          },
+        ];
+      }
+
+      if (
+        profile.goal ===
+        "Sleep"
+      ) {
+        return [
+          {
+            title:
+              "Sleep Consistency Reset",
+
+            description:
+              "Supporting deeper restoration through more stable sleep and wake timing.",
+
+            progress: 61,
+
+            duration:
+              "21 day cycle",
+          },
+
+          {
+            title:
+              "Circadian Rhythm Support",
+
+            description:
+              "Morning light exposure and evening nervous system regulation support.",
+
+            progress: 79,
+
+            duration:
+              "Ongoing",
+          },
+        ];
+      }
+
+      if (
+        profile.goal ===
+        "Energy"
+      ) {
+        return [
+          {
+            title:
+              "Energy Stabilization",
+
+            description:
+              "Hydration rhythm, recovery pacing, and restorative movement support.",
+
+            progress: 81,
+
+            duration:
+              "14 day cycle",
+          },
+
+          {
+            title:
+              "Morning Activation",
+
+            description:
+              "Reducing crashes and improving sustainable daily capacity.",
+
+            progress: 66,
+
+            duration:
+              "Ongoing",
+          },
+        ];
+      }
+
+      return [
+        {
+          title:
+            "Foundational Recovery",
+
+          description:
+            "Guided wellness consistency and recovery support.",
+
+          progress: 70,
+
+          duration:
+            "Ongoing",
+        },
+      ];
+    }, [profile]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                           SESSION INFO                                 */
+  /* ---------------------------------------------------------------------- */
+
+  const upcomingSession =
+    useMemo(() => {
+      if (
+        profile?.goal ===
+        "Stress"
+      ) {
+        return {
+          title:
+            "Nervous System Recovery Review",
+
+          day: "Thursday",
+
+          time: "7:00 PM",
+        };
+      }
+
+      if (
+        profile?.goal ===
+        "Sleep"
+      ) {
+        return {
+          title:
+            "Sleep Rhythm Optimization",
+
+          day: "Wednesday",
+
+          time: "8:00 PM",
+        };
+      }
+
+      return {
+        title:
+          "Guided Recovery Review",
+
+        day: "Thursday",
+
+        time: "6:30 PM",
+      };
+    }, [profile]);
+
+  /* ---------------------------------------------------------------------- */
+  /*                           ANIMATION                                    */
+  /* ---------------------------------------------------------------------- */
+
+  const fadeUp = (
+    delay = 0,
+  ) => ({
+    initial: {
+      opacity: 0,
+      y: 24,
+    },
+
+    animate: {
+      opacity: 1,
+      y: 0,
+    },
+
+    transition: {
+      duration: 0.65,
+      delay,
+    },
+  });
+
+  /* ---------------------------------------------------------------------- */
+  /*                               LOADING                                  */
+  /* ---------------------------------------------------------------------- */
+
+  if (
+    loading ||
+    dashboardLoading
+  ) {
+    return (
+      <AuthLoadingScreen />
+    );
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /*                                   UI                                   */
+  /* ---------------------------------------------------------------------- */
 
   return (
-    <div className="max-w-6xl mx-auto px-4 lg:px-8 py-8 space-y-7">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 pb-10 pt-4 lg:px-8">
+
       {/* HERO */}
-      {/* HERO */}
-      <motion.div
-        {...fadeIn(0)}
-        className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#7A553D] via-[#654635] to-[#432D21] p-6 lg:p-8 text-white shadow-[0_20px_70px_rgba(91,63,43,0.22)]"
+
+      <motion.section
+        {...fadeUp(0)}
+        className="relative overflow-hidden rounded-[2.8rem] border border-white/30 bg-gradient-to-br from-[#7A553D] via-[#654635] to-[#432D21] p-7 text-white shadow-[0_30px_80px_rgba(91,63,43,0.22)] lg:p-10"
       >
-        {/* Glow */}
-        <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-[#D7B89E]/10 blur-3xl" />
+        <div className="absolute -left-24 -top-24 h-[320px] w-[320px] rounded-full bg-white/5 blur-3xl" />
 
-        <div className="relative flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+        <div className="absolute -bottom-24 -right-24 h-[320px] w-[320px] rounded-full bg-[#D6B79C]/10 blur-3xl" />
+
+        <div className="relative flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
+
           {/* LEFT */}
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 backdrop-blur-xl mb-5">
-              <div className="w-2 h-2 rounded-full bg-[#E7C7A7] animate-pulse" />
 
-              <span className="text-[10px] uppercase tracking-[0.25em] text-white/70">
-                Wellness Intelligence
+          <div className="max-w-2xl">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 backdrop-blur-xl">
+              <Sparkles className="h-3.5 w-3.5 text-[#E6C7A7]" />
+
+              <span className="text-[10px] uppercase tracking-[0.24em] text-white/70">
+                Personalized Recovery Experience
               </span>
             </div>
 
-            <h1 className="font-serif text-4xl lg:text-6xl leading-[1.02] tracking-tight">
-              Recovery improved <span className="text-[#E7C7A7]">18%</span>
+            <h1 className="font-serif text-4xl leading-[1.02] tracking-tight lg:text-6xl">
+              Your recovery rhythm is evolving,
               <br />
-              this week, {firstName}.
+
+              <span className="text-[#E6C7A7]">
+                {firstName}.
+              </span>
             </h1>
 
-            <p className="mt-5 max-w-xl text-sm lg:text-[15px] leading-relaxed text-white/72">
-              Your sleep consistency and stress recovery patterns are trending
-              positively. Your protocol has been updated for deeper overnight
-              restoration.
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/72 lg:text-[15px]">
+              {
+                heroDescription
+              }
             </p>
-
-            {/* MINI STATS */}
-            <div className="mt-6 flex flex-wrap gap-3">
-              <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl px-4 py-3 min-w-[110px]">
-                <p className="text-[10px] uppercase tracking-wide text-white/45">
-                  Sleep
-                </p>
-
-                <p className="mt-1 font-serif text-2xl">92%</p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl px-4 py-3 min-w-[110px]">
-                <p className="text-[10px] uppercase tracking-wide text-white/45">
-                  Recovery
-                </p>
-
-                <p className="mt-1 font-serif text-2xl text-[#E7C7A7]">+18%</p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-xl px-4 py-3 min-w-[110px]">
-                <p className="text-[10px] uppercase tracking-wide text-white/45">
-                  Stress
-                </p>
-
-                <p className="mt-1 font-serif text-2xl">Moderate</p>
-              </div>
-            </div>
           </div>
 
-          {/* RIGHT SCORE */}
-          <div className="self-start lg:self-end">
-            <div className="rounded-[2rem] border border-white/10 bg-white/10 backdrop-blur-2xl px-6 py-5 min-w-[180px]">
-              <p className="text-[10px] uppercase tracking-[0.22em] text-white/50 mb-3">
-                Recovery Score
+          {/* RIGHT */}
+
+          <div className="w-full max-w-[320px] rounded-[2rem] border border-white/10 bg-white/10 p-6 backdrop-blur-2xl">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] uppercase tracking-[0.22em] text-white/50">
+                Current Focus
               </p>
 
-              <div className="flex items-end gap-1">
-                <span className="font-serif text-6xl leading-none">87</span>
+              <Heart className="h-4 w-4 text-[#E6C7A7]" />
+            </div>
 
-                <span className="text-white/50 mb-2 text-sm">/100</span>
-              </div>
+            <div className="mt-5 space-y-4">
+              {currentFocus.map(
+                (
+                  item,
+                ) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-3"
+                  >
+                    <div className="h-2 w-2 rounded-full bg-[#E6C7A7]" />
 
-              <div className="mt-4 h-2 rounded-full bg-white/10 overflow-hidden">
-                <div className="h-full w-[87%] rounded-full bg-gradient-to-r from-[#E7C7A7] to-[#D9B89B]" />
-              </div>
-
-              <p className="mt-3 text-sm text-white/65">
-                Excellent recovery trajectory
-              </p>
+                    <p className="text-sm text-white/80">
+                      {item}
+                    </p>
+                  </div>
+                ),
+              )}
             </div>
           </div>
         </div>
-      </motion.div>
+      </motion.section>
 
-      {/* SCORE CARDS */}
-      <motion.div
-        {...fadeIn(0.08)}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-3"
+      {/* WELLNESS CARDS */}
+
+      <motion.section
+        {...fadeUp(0.08)}
+        className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
       >
-        {scoreCards.map((card) => (
-          <div
-            key={card.label}
-            className={`bg-card rounded-2xl p-4 border ${card.borderColor} shadow-soft hover:shadow-card transition-all duration-300 hover:-translate-y-0.5`}
-          >
+        {wellnessCards.map(
+          (card) => (
             <div
-              className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center mb-3`}
+              key={card.label}
+              className={`rounded-[2rem] border ${card.border} bg-white/90 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.04)] backdrop-blur-xl`}
             >
-              <card.icon className={`w-[18px] h-[18px] ${card.color}`} />
-            </div>
+              <div
+                className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${card.bg}`}
+              >
+                <card.icon
+                  className={`h-5 w-5 ${card.color}`}
+                />
+              </div>
 
-            <p className="text-xs text-sand-500 mb-1">{card.label}</p>
+              <p className="text-sm text-[#8D7768]">
+                {card.label}
+              </p>
 
-            <div className="flex items-baseline gap-1">
-              <span className="font-serif text-2xl font-light text-sand-800">
+              <h3 className="mt-1 font-serif text-2xl text-[#3E2D24]">
                 {card.value}
-              </span>
-
-              <span className="text-xs text-sand-500">{card.unit}</span>
-            </div>
-
-            <p className="text-xs text-sage-400 font-medium mt-1">
-              {card.change} this week
-            </p>
-          </div>
-        ))}
-      </motion.div>
-
-      {/* QUICK ACTIONS */}
-      <motion.div
-        {...fadeIn(0.12)}
-        className="grid grid-cols-1 md:grid-cols-3 gap-4"
-      >
-        {[
-          {
-            icon: ClipboardList,
-            label: "Protocols",
-            desc: "View your active protocols",
-            href: "/protocols",
-          },
-          {
-            icon: TrendingUp,
-            label: "Progress",
-            desc: "Track your wellness journey",
-            href: "/progress",
-          },
-          {
-            icon: Calendar,
-            label: "Schedule",
-            desc: "Upcoming coaching sessions",
-            href: "/schedule",
-          },
-        ].map((item) => (
-          <Link
-            href={item.href}
-            key={item.label}
-            className="group bg-white border border-[#E8DED5] rounded-[2rem] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition-all duration-300 hover:-translate-y-1"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#7A553D] to-[#4B3326] flex items-center justify-center shadow-md">
-                <item.icon className="w-5 h-5 text-white" />
-              </div>
-
-              <div className="flex-1">
-                <h3 className="font-medium text-[#3E2D24]">{item.label}</h3>
-
-                <p className="text-sm text-[#8D7768] mt-1">{item.desc}</p>
-              </div>
-
-              <ChevronRight className="w-5 h-5 text-[#B39A87] group-hover:translate-x-1 transition-transform" />
-            </div>
-          </Link>
-        ))}
-      </motion.div>
-
-      {/* CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        {/* ENERGY */}
-        <motion.div
-          {...fadeIn(0.18)}
-          className="lg:col-span-3 bg-card rounded-[2rem] p-5 border border-sand-200 shadow-soft"
-        >
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="font-medium text-sand-800 text-sm">
-                Energy & Sleep Trend
               </h3>
 
-              <p className="text-xs text-sand-500 mt-0.5">Last 7 days</p>
+              <p className="mt-2 text-sm text-[#9A8475]">
+                {card.detail}
+              </p>
+            </div>
+          ),
+        )}
+      </motion.section>
+
+      {/* PROTOCOLS */}
+
+      <motion.section
+        {...fadeUp(0.12)}
+        className="grid grid-cols-1 gap-5 xl:grid-cols-3"
+      >
+
+        {/* LEFT */}
+
+        <div className="xl:col-span-2 rounded-[2.5rem] border border-[#E8DED5] bg-white/90 p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)] backdrop-blur-xl">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[#A58D7B]">
+                Personalized Protocols
+              </p>
+
+              <h2 className="mt-2 font-serif text-3xl text-[#3E2D24]">
+                Your guided wellness rhythms
+              </h2>
             </div>
 
-            <Badge className="bg-sage-100 text-sage-500 border-0">
-              Improving
+            <Badge className="border-0 bg-[#F4ECE4] text-[#7A553D]">
+              Personalized
             </Badge>
           </div>
 
-          <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={energyData}>
-              <defs>
-                <linearGradient id="energyGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#b89d82" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="#b89d82" stopOpacity={0} />
-                </linearGradient>
-              </defs>
+          <div className="space-y-4">
+            {activeProtocols.map(
+              (
+                protocol,
+              ) => (
+                <div
+                  key={
+                    protocol.title
+                  }
+                  className="rounded-[2rem] border border-[#EEE4DA] bg-[#FCFAF8] p-5"
+                >
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="max-w-xl">
+                      <h3 className="font-medium text-[#3E2D24]">
+                        {
+                          protocol.title
+                        }
+                      </h3>
 
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#ede4d8"
-                vertical={false}
-              />
+                      <p className="mt-2 text-sm leading-relaxed text-[#8D7768]">
+                        {
+                          protocol.description
+                        }
+                      </p>
 
-              <XAxis dataKey="day" axisLine={false} tickLine={false} />
+                      <p className="mt-3 text-xs uppercase tracking-wide text-[#B59C89]">
+                        {
+                          protocol.duration
+                        }
+                      </p>
+                    </div>
 
-              <YAxis axisLine={false} tickLine={false} domain={[50, 100]} />
+                    <div className="w-full max-w-[180px]">
+                      <div className="mb-2 flex items-center justify-between">
+                        <span className="text-xs text-[#8D7768]">
+                          Consistency
+                        </span>
 
-              <Tooltip content={<CustomTooltip />} />
+                        <span className="text-xs font-medium text-[#6B4A36]">
+                          {
+                            protocol.progress
+                          }
+                          %
+                        </span>
+                      </div>
 
-              <Area
-                type="monotone"
-                dataKey="energy"
-                stroke="#9a7d61"
-                strokeWidth={2}
-                fill="url(#energyGrad)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </motion.div>
+                      <Progress
+                        value={
+                          protocol.progress
+                        }
+                        className="h-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
 
-        {/* CHECKLIST */}
-        <motion.div
-          {...fadeIn(0.24)}
-          className="lg:col-span-2 bg-card rounded-[2rem] p-5 border border-sand-200 shadow-soft"
-        >
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="font-medium text-sand-800 text-sm">
-                Daily Checklist
-              </h3>
+        {/* RIGHT */}
 
-              <p className="text-xs text-sand-500 mt-0.5">
-                {completedCount} of {checklist.length} complete
+        <div className="rounded-[2.5rem] border border-[#E8DED5] bg-gradient-to-br from-[#F8F3EE] to-[#F3EBE4] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)]">
+          <div className="flex items-center justify-between">
+            <div className="rounded-2xl bg-white p-3 shadow-sm">
+              <Calendar className="h-5 w-5 text-[#7A553D]" />
+            </div>
+
+            <Badge className="border-0 bg-white text-[#7A553D]">
+              Upcoming
+            </Badge>
+          </div>
+
+          <div className="mt-6">
+            <p className="text-xs uppercase tracking-[0.22em] text-[#A58D7B]">
+              Next Session
+            </p>
+
+            <h3 className="mt-2 font-serif text-3xl leading-tight text-[#3E2D24]">
+              {
+                upcomingSession.title
+              }
+            </h3>
+
+            <p className="mt-4 text-sm leading-relaxed text-[#7D6B5D]">
+              Your next guided recovery and wellness support experience.
+            </p>
+
+            <div className="mt-6 rounded-2xl border border-white/70 bg-white/70 p-4 backdrop-blur-xl">
+              <p className="text-sm font-medium text-[#5B4B3E]">
+                {
+                  upcomingSession.day
+                }
+              </p>
+
+              <p className="mt-1 text-[#A58D7B]">
+                {
+                  upcomingSession.time
+                }
               </p>
             </div>
 
-            <span className="text-xs font-medium text-sand-700">
-              {completionPct}%
-            </span>
+            <button className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#6B4A36] px-5 py-3 text-sm font-medium text-white transition-all duration-300 hover:bg-[#5A3F2F]">
+              View Session Details
+
+              <ArrowUpRight className="h-4 w-4" />
+            </button>
           </div>
-
-          <Progress value={completionPct} className="h-1.5 mb-5" />
-
-          <div className="space-y-2">
-            {checklist.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => toggle(item.id)}
-                className="w-full flex items-center gap-3 py-3 px-3 rounded-xl hover:bg-sand-50 transition-colors text-left"
-              >
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    item.done ? "bg-sand-700" : "border-2 border-sand-300"
-                  }`}
-                >
-                  {item.done && (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                  )}
-                </div>
-
-                <span
-                  className={`text-sm flex-1 ${
-                    item.done ? "line-through text-sand-500" : "text-sand-700"
-                  }`}
-                >
-                  {item.label}
-                </span>
-
-                <span className="text-xs text-sand-500">{item.time}</span>
-              </button>
-            ))}
-          </div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.section>
     </div>
   );
 }

@@ -1,175 +1,180 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useMemo, useState } from "react";
+
+import { EmptyState } from "@/components/ui/EmptyState";
+
+import { motion } from "framer-motion";
+
 import {
-  Droplets, Beef, Wind, Footprints, Moon, Pill,
-  CheckCircle2, ChevronRight, Info, Clock, Trophy
-} from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+  Droplets,
+  Beef,
+  Wind,
+  Footprints,
+  Moon,
+  Pill,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Trophy,
+  Sparkles,
+} from "lucide-react";
 
-const protocols = [
-  {
-    id: 1,
-    icon: Droplets,
-    title: 'Morning Hydration',
-    description: 'Start with 500ml water + pinch of Himalayan salt to activate cellular hydration pathways and support cortisol awakening response.',
-    target: '500 ml',
-    time: '6:30 – 7:30 AM',
-    category: 'Morning',
-    done: true,
-    color: 'text-[#5a9bbf]',
-    bg: 'bg-[#ebf4fb]',
-    borderDone: 'border-[#c8e5f4]',
-    tip: 'Adding electrolytes in the morning improves mitochondrial function by up to 22%.',
-  },
-  {
-    id: 2,
-    icon: Beef,
-    title: 'Protein Target',
-    description: 'Reach 35g+ protein by noon to optimize muscle protein synthesis and support sustained energy through metabolic pathways.',
-    target: '35 g before noon',
-    time: '7:00 – 12:00 PM',
-    category: 'Morning',
-    done: true,
-    color: 'text-sand-600',
-    bg: 'bg-sand-100',
-    borderDone: 'border-sand-200',
-    tip: 'Morning protein intake reduces ghrelin spikes by 40% and stabilizes blood glucose.',
-  },
-  {
-    id: 3,
-    icon: Wind,
-    title: 'Breathwork',
-    description: 'Box breathing or 4-7-8 technique to downregulate the nervous system, reduce morning cortisol, and prime focus.',
-    target: '5 minutes',
-    time: '8:00 – 9:00 AM',
-    category: 'Morning',
-    done: true,
-    color: 'text-sage-400',
-    bg: 'bg-sage-100',
-    borderDone: 'border-sage-200',
-    tip: 'Just 5 minutes of structured breathwork lowers cortisol by up to 23%.',
-  },
-  {
-    id: 4,
-    icon: Footprints,
-    title: 'Walking Goal',
-    description: 'Brisk walking in natural light supports circadian rhythm, lymphatic drainage, and post-prandial glucose regulation.',
-    target: '6,000 steps',
-    time: 'Any time',
-    category: 'Movement',
-    done: false,
-    color: 'text-sand-600',
-    bg: 'bg-sand-50',
-    borderDone: 'border-sand-200',
-    tip: 'A 20-min walk after meals reduces glucose spikes by 30% compared to sitting.',
-  },
-  {
-    id: 5,
-    icon: Moon,
-    title: 'Sleep Target',
-    description: 'Maintain consistent sleep window of 8.5 hours. Cool room (18-20°C), blackout curtains, and blue light off 90 min before.',
-    target: '8.5 hours',
-    time: '9:30 PM – 6:00 AM',
-    category: 'Evening',
-    done: false,
-    color: 'text-[#7c6fa0]',
-    bg: 'bg-[#f0edf8]',
-    borderDone: 'border-[#e2dcf2]',
-    tip: 'Consistent sleep timing regulates cortisol rhythm better than any supplement.',
-  },
-  {
-    id: 6,
-    icon: Pill,
-    title: 'Supplement Stack',
-    description: 'Magnesium glycinate (400mg), Vitamin D3 + K2, and Omega-3 to support cellular repair, hormone balance, and inflammation.',
-    target: 'With dinner',
-    time: '6:00 – 8:00 PM',
-    category: 'Evening',
-    done: false,
-    color: 'text-blush-400',
-    bg: 'bg-blush-100',
-    borderDone: 'border-blush-200',
-    tip: 'Magnesium glycinate taken in the evening improves sleep latency by 37%.',
-  },
-];
+import { Progress } from "@/components/ui/progress";
 
-const categories = ['All', 'Morning', 'Movement', 'Evening'];
+import { Badge } from "@/components/ui/badge";
 
-function ProtocolCard({ protocol, onToggle }: { protocol: typeof protocols[0]; onToggle: (id: number) => void }) {
+import { cn } from "@/lib/utils";
+
+import {
+  getProtocolsWithProgress,
+  toggleProtocolProgress,
+  Protocol,
+} from "@/lib/database/protocols";
+
+import { createClient } from "@/lib/supabase/client";
+
+const supabase = createClient();
+
+/* -------------------------------------------------------------------------- */
+/*                                ICON MAPPER                                 */
+/* -------------------------------------------------------------------------- */
+
+const iconMap = {
+  Droplets,
+  Beef,
+  Wind,
+  Footprints,
+  Moon,
+  Pill,
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              PROTOCOL CARD                                 */
+/* -------------------------------------------------------------------------- */
+
+function ProtocolCard({
+  protocol,
+  onToggle,
+}: {
+  protocol: Protocol;
+
+  onToggle: (id: number) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
+
+  const Icon =
+    iconMap[protocol.icon as keyof typeof iconMap] || Droplets;
 
   return (
     <motion.div
       layout
       className={cn(
-        'rounded-2xl border p-5 transition-all duration-300 cursor-default',
+        "rounded-[2rem] border p-5 transition-all duration-300",
+
         protocol.done
-          ? 'bg-sand-50 border-sand-200 opacity-95'
-          : 'bg-card border-sand-200 shadow-soft hover:shadow-card hover:-translate-y-0.5'
+          ? "border-[#E8DED5] bg-[#FAF7F4]"
+          : "border-[#E8DED5] bg-white/90 shadow-[0_10px_40px_rgba(0,0,0,0.04)] hover:-translate-y-1 hover:shadow-[0_16px_50px_rgba(0,0,0,0.06)]",
       )}
     >
       <div className="flex items-start gap-4">
-        <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5', protocol.bg)}>
-          <protocol.icon className={cn('w-5 h-5', protocol.color)} />
+        <div
+          className={cn(
+            "mt-0.5 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl",
+            protocol.bg,
+          )}
+        >
+          <Icon className={cn("h-5 w-5", protocol.color)} />
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <h3 className={cn('font-medium text-sm', protocol.done ? 'text-sand-500 line-through' : 'text-sand-800')}>
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <h3
+              className={cn(
+                "text-sm font-medium",
+
+                protocol.done
+                  ? "text-[#A08C7B] line-through"
+                  : "text-[#3E2D24]",
+              )}
+            >
               {protocol.title}
             </h3>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <Badge variant="outline" className="text-[10px] border-sand-200 text-sand-500 font-normal">
-                <Clock className="w-2.5 h-2.5 mr-1" />
-                {protocol.time}
-              </Badge>
-            </div>
+
+            <Badge
+              variant="outline"
+              className="border-[#E8DED5] text-[10px] font-normal text-[#8D7768]"
+            >
+              <Clock className="mr-1 h-2.5 w-2.5" />
+
+              {protocol.time}
+            </Badge>
           </div>
 
-          <p className={cn('text-xs leading-relaxed mb-3', protocol.done ? 'text-sand-500' : 'text-sand-600')}>
-            {expanded ? protocol.description : `${protocol.description.slice(0, 80)}...`}
+          <p
+            className={cn(
+              "mb-4 text-sm leading-relaxed",
+
+              protocol.done ? "text-[#A08C7B]" : "text-[#7D6B5D]",
+            )}
+          >
+            {expanded
+              ? protocol.description
+              : `${protocol.description.slice(0, 95)}...`}
           </p>
 
           {expanded && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="bg-sand-50 rounded-xl p-3 mb-3 flex items-start gap-2"
+              initial={{
+                opacity: 0,
+                height: 0,
+              }}
+              animate={{
+                opacity: 1,
+                height: "auto",
+              }}
+              className="mb-4 rounded-2xl border border-[#EEE4DA] bg-[#FCFAF8] p-4"
             >
-              <Info className="w-3.5 h-3.5 text-sand-500 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-sand-600 leading-relaxed">{protocol.tip}</p>
+              <p className="text-xs leading-relaxed text-[#8D7768]">
+                {protocol.tip}
+              </p>
             </motion.div>
           )}
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => onToggle(protocol.id)}
                 className={cn(
-                  'flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-all duration-200',
+                  "flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium transition-all duration-200",
+
                   protocol.done
-                    ? 'bg-sand-200 text-sand-600 hover:bg-sand-300'
-                    : 'bg-sand-700 text-sand-50 hover:bg-sand-800'
+                    ? "bg-[#E8DED5] text-[#7D6B5D] hover:bg-[#DDD0C3]"
+                    : "bg-[#6B4A36] text-white hover:bg-[#5A3F2F]",
                 )}
               >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                {protocol.done ? 'Undo' : 'Mark Complete'}
+                <CheckCircle2 className="h-3.5 w-3.5" />
+
+                {protocol.done ? "Completed" : "Complete Practice"}
               </button>
 
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="text-xs text-sand-500 hover:text-sand-600 flex items-center gap-1 transition-colors"
+                className="flex items-center gap-1 text-xs text-[#8D7768] transition-colors hover:text-[#6B4A36]"
               >
-                {expanded ? 'Less' : 'Details'}
-                <ChevronRight className={cn('w-3 h-3 transition-transform', expanded && 'rotate-90')} />
+                {expanded ? "Less" : "Details"}
+
+                <ChevronRight
+                  className={cn(
+                    "h-3 w-3 transition-transform",
+
+                    expanded && "rotate-90",
+                  )}
+                />
               </button>
             </div>
 
-            <span className="text-xs font-medium text-sand-600 bg-sand-100 px-2 py-1 rounded-full">
+            <span className="rounded-full bg-[#F4ECE4] px-3 py-1 text-xs font-medium text-[#7A553D]">
               {protocol.target}
             </span>
           </div>
@@ -179,114 +184,301 @@ function ProtocolCard({ protocol, onToggle }: { protocol: typeof protocols[0]; o
   );
 }
 
-export default function ProtocolsPage() {
-  const [items, setItems] = useState(protocols);
-  const [activeCategory, setActiveCategory] = useState('All');
+/* -------------------------------------------------------------------------- */
+/*                               MAIN PAGE                                    */
+/* -------------------------------------------------------------------------- */
 
-  const toggle = (id: number) => {
-    setItems(prev => prev.map(p => p.id === id ? { ...p, done: !p.done } : p));
+const categories = ["All", "Morning", "Movement", "Evening"];
+
+export default function ProtocolsPage() {
+  const [items, setItems] = useState<Protocol[]>([]);
+
+  const [loading, setLoading] = useState(true);
+
+  const [activeCategory, setActiveCategory] = useState("All");
+
+  useEffect(() => {
+    async function loadProtocols() {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        const user = session?.user;
+
+        if (!user) return;
+
+        const data = await getProtocolsWithProgress(user.id);
+
+        setItems(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadProtocols();
+  }, []);
+
+  const toggle = async (id: number) => {
+    const protocol = items.find((p) => p.id === id);
+
+    if (!protocol) return;
+
+    const updatedDone = !protocol.done;
+
+    setItems((prev) =>
+      prev.map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              done: updatedDone,
+            }
+          : p,
+      ),
+    );
+
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const user = session?.user;
+
+      if (!user) return;
+
+      await toggleProtocolProgress({
+        userId: user.id,
+        protocolId: id,
+        completed: updatedDone,
+      });
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const filtered = activeCategory === 'All' ? items : items.filter(p => p.category === activeCategory);
-  const completedCount = items.filter(p => p.done).length;
-  const completionPct = Math.round((completedCount / items.length) * 100);
+  const filtered =
+    activeCategory === "All"
+      ? items
+      : items.filter((p) => p.category === activeCategory);
+
+  const completedCount = items.filter((p) => p.done).length;
+
+  const completionPct =
+    items.length > 0
+      ? Math.round((completedCount / items.length) * 100)
+      : 0;
+
+  const todaysGuidance = useMemo(
+    () => [
+      "Gentle consistency matters more than intensity today.",
+
+      "Prioritize calm evening transitions and slower stimulation.",
+
+      "Focus on supportive rhythms instead of perfect execution.",
+    ],
+    [],
+  );
+
+  const hasProtocols = filtered.length > 0;
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <p className="text-sm text-[#8D7768]">
+          Loading guided practices...
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 lg:px-8 py-8 space-y-7">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <p className="text-xs text-sand-500 uppercase tracking-widest font-medium mb-1">Daily Protocols</p>
-        <h1 className="font-serif text-3xl lg:text-4xl font-light text-sand-900 mb-2">
-          Your <em>Wellness Blueprint</em>
-        </h1>
-        <p className="text-sm text-sand-600">Thursday, May 14 · Week 6 of Protocol</p>
-      </motion.div>
-
-      {/* Progress summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.08 }}
-        className="bg-sand-900 rounded-2xl p-5 text-sand-100"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-xs text-sand-500 mb-1">Today&apos;s Completion</p>
-            <div className="flex items-baseline gap-2">
-              <span className="font-serif text-3xl font-light">{completionPct}%</span>
-              <span className="text-sm text-sand-500">{completedCount}/{items.length} done</span>
-            </div>
-          </div>
-          <div className="w-14 h-14 rounded-full border-2 border-sand-600 flex items-center justify-center">
-            <Trophy className={cn('w-6 h-6', completionPct === 100 ? 'text-sand-300' : 'text-sand-600')} />
-          </div>
-        </div>
-        <Progress value={completionPct} className="h-2 bg-sand-700 [&>div]:bg-sand-400" />
-        {completionPct === 100 && (
-          <p className="text-xs text-sand-300 mt-2 font-medium">Exceptional! Full protocol complete today.</p>
-        )}
-      </motion.div>
-
-      {/* Category filter */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.12 }}
-        className="flex gap-2 flex-wrap"
-      >
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={cn(
-              'px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200',
-              activeCategory === cat
-                ? 'bg-sand-700 text-sand-50'
-                : 'bg-sand-100 text-sand-600 hover:bg-sand-200'
-            )}
+    <div className="mx-auto max-w-4xl space-y-7 px-4 py-8 lg:px-8">
+      {!hasProtocols ? (
+        <EmptyState
+          title="No guided practices yet"
+          description="Supportive wellness routines and daily recovery practices will appear here over time."
+        />
+      ) : (
+        <>
+          {/* HEADER */}
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 16,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              duration: 0.5,
+            }}
           >
-            {cat}
-          </button>
-        ))}
-      </motion.div>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#E8DED5] bg-white px-3 py-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-[#B89B84]" />
 
-      {/* Protocol cards */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.4, delay: 0.16 }}
-        className="space-y-3"
-      >
-        {filtered.map((protocol) => (
-          <ProtocolCard key={protocol.id} protocol={protocol} onToggle={toggle} />
-        ))}
-      </motion.div>
+              <span className="text-[10px] uppercase tracking-[0.22em] text-[#8D7768]">
+                Guided Practices
+              </span>
+            </div>
 
-      {/* Note from coach */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.24 }}
-        className="bg-blush-50 border border-blush-200 rounded-2xl p-5"
-      >
-        <div className="flex items-start gap-3">
-          <img
-            src="https://images.pexels.com/photos/3807517/pexels-photo-3807517.jpeg?auto=compress&cs=tinysrgb&w=100"
-            alt="Coach"
-            className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-          />
-          <div>
-            <p className="text-xs font-medium text-sand-700 mb-0.5">Dr. Elena Marchetti · Your Coach</p>
-            <p className="text-sm text-sand-600 leading-relaxed italic">
-              &ldquo;You&apos;ve been incredibly consistent this week, Sophia. Your sleep data shows remarkable improvement. Keep prioritizing the evening wind-down — it&apos;s making the biggest difference.&rdquo;
+            <h1 className="font-serif text-4xl leading-tight text-[#3E2D24] lg:text-5xl">
+              Your wellness rhythms
+            </h1>
+
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[#7D6B5D] lg:text-[15px]">
+              Small restorative practices designed to support recovery,
+              consistency, and a calmer relationship with wellness.
             </p>
-          </div>
-        </div>
-      </motion.div>
+          </motion.div>
+
+          {/* CONSISTENCY */}
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 16,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              duration: 0.5,
+              delay: 0.08,
+            }}
+            className="rounded-[2.5rem] bg-gradient-to-br from-[#6B4A36] via-[#5A3F2F] to-[#432D21] p-6 text-white shadow-[0_24px_70px_rgba(91,63,43,0.2)]"
+          >
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-white/50">
+                  Today’s Consistency
+                </p>
+
+                <div className="mt-2 flex items-end gap-2">
+                  <span className="font-serif text-5xl leading-none">
+                    {completionPct}%
+                  </span>
+
+                  <span className="mb-1 text-sm text-white/60">
+                    completed
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/10">
+                <Trophy className="h-6 w-6 text-[#E6C7A7]" />
+              </div>
+            </div>
+
+            <Progress
+              value={completionPct}
+              className="h-2 bg-white/10 [&>div]:bg-[#E6C7A7]"
+            />
+
+            <p className="mt-4 text-sm leading-relaxed text-white/70">
+              Gentle consistency creates more sustainable rhythms than
+              intensity alone.
+            </p>
+          </motion.div>
+
+          {/* FILTERS */}
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 10,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              duration: 0.4,
+              delay: 0.12,
+            }}
+            className="flex flex-wrap gap-2"
+          >
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-medium transition-all duration-200",
+
+                  activeCategory === cat
+                    ? "bg-[#6B4A36] text-white"
+                    : "bg-[#F4ECE4] text-[#7D6B5D] hover:bg-[#E8DED5]",
+                )}
+              >
+                {cat}
+              </button>
+            ))}
+          </motion.div>
+
+          {/* PROTOCOLS */}
+          <motion.div
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            transition={{
+              duration: 0.4,
+              delay: 0.16,
+            }}
+            className="space-y-4"
+          >
+            {filtered.map((protocol) => (
+              <ProtocolCard
+                key={protocol.id}
+                protocol={protocol}
+                onToggle={toggle}
+              />
+            ))}
+          </motion.div>
+
+          {/* GUIDANCE */}
+          <motion.div
+            initial={{
+              opacity: 0,
+              y: 16,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              duration: 0.5,
+              delay: 0.22,
+            }}
+            className="rounded-[2.5rem] border border-[#E8DED5] bg-gradient-to-br from-white to-[#FBF7F3] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.04)]"
+          >
+            <div className="mb-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-[#A58D7B]">
+                Today’s Guidance
+              </p>
+
+              <h2 className="mt-2 font-serif text-3xl text-[#3E2D24]">
+                Gentle reminders for today
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {todaysGuidance.map((item) => (
+                <div key={item} className="flex items-start gap-3">
+                  <div className="mt-2 h-2 w-2 rounded-full bg-[#8D6B54]" />
+
+                  <p className="text-sm leading-relaxed text-[#6B5B4D]">
+                    {item}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </>
+      )}
     </div>
   );
 }
